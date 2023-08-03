@@ -43,7 +43,7 @@ struct ContentView: View {
 							.font(.system(size: 45, weight: .bold))
 						Text("What is result of:")
 							.font(.title)
-						Text("\(randomNumber) x \(numberForTraining)")
+						Text("\(numberForTraining) x \(randomNumber)")
 							.font(.title2)
 						
 						TextField("Enter number", text: $userAnswer)
@@ -66,7 +66,6 @@ struct ContentView: View {
 								
 						}
 						.padding()
-						Text("Score: \(userScore)")
 					}
 				}
 			} else {
@@ -133,7 +132,7 @@ struct ContentView: View {
 			Button("Next round", action: startNewRound)
 		}
 		.alert("The End", isPresented: $isEndOfgame) {
-			Button("Try again") {
+			Button("New Game") {
 				restartGame()
 			}
 		} message: {
