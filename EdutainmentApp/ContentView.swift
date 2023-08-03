@@ -10,11 +10,25 @@ import SwiftUI
 struct ContentView: View {
 	
 	// MARK: - States
-	@State private var isGamePlaying: Bool = false
-	@State private var isShowingError: Bool = false
-	@State private var numberForTraining = 2
+	
+	//Settings
 	@State private var numberOfQuestions: [Int] = [5, 10, 20]
+	@State private var numberForTraining = 2
 	@State private var questionCount: Int?
+	@State private var isShowingError: Bool = false
+
+	// Game
+	@State private var isGamePlaying: Bool = false
+	@State private var isEndOfgame = false
+	@State private var gameRound = 1
+	@State private var userScore = 0
+	
+	// Round
+	@State private var isShownRoundAlert = false
+	@State private var roundResultAlertTitle = ""
+	@State private var roundResultAlertMessage = ""
+	@State private var randomNumber = Int.random(in: 1...10)
+	@State private var userAnswer = ""
 	
 	// MARK: - UI
 	
@@ -24,10 +38,25 @@ struct ContentView: View {
 				ZStack {
 					LinearGradient(colors: [.green, .blue], startPoint: .topLeading, endPoint: .bottomTrailing)
 						.ignoresSafeArea()
-					Button {
-						toggleGame()
-					} label: {
-						Text("Restart")
+					VStack {
+						Text("ROUND \(gameRound)")
+							.font(.largeTitle)
+						Text("What is result of:")
+							.font(.title2)
+						Text("\(randomNumber) x \(numberForTraining)")
+						
+						TextField("Enter number", text: $userAnswer)
+							.padding()
+							.border(.blue, width: 2)
+							.padding()
+						
+						Button {
+							checkAnswer()
+						} label: {
+							Text("Check")
+						}
+						.padding()
+						Text("Your score: \(userScore)")
 					}
 				}
 			} else {
@@ -66,14 +95,13 @@ struct ContentView: View {
 										.clipShape(RoundedRectangle(cornerRadius: 20))
 										.padding()
 								}
-
 							}
 						}
 						Spacer()
 						
 						// Start Button
 						Button {
-							toggleGame()
+							startGame()
 						} label: {
 							Text("Start Trainig")
 								.font(.title2)
@@ -89,21 +117,70 @@ struct ContentView: View {
 			}
 		}
 		.alert("WARNING!", isPresented: $isShowingError) {
-			
 		} message: {
 			Text("Choose number of questions and try again!")
+		}
+		.alert(roundResultAlertTitle, isPresented: $isShownRoundAlert) {
+			Button("Next round", action: startNewRound)
+		}
+		.alert("THE END", isPresented: $isEndOfgame) {
+			VStack {
+				Text("Your score: \(userScore)")
+				Button("Try again") {
+					restartGame()
+				}
+			}
 		}
     }
 	
 	// MARK: - Private methods
 	
-	private func toggleGame() {
-		if !isGamePlaying {
-			if questionCount == nil {
-				isShowingError = true
+	private func checkAnswer() {
+		if userAnswer.trimmingCharacters(in: .whitespacesAndNewlines) == "" {
+			// alert
+			return
+		} else {
+			guard let answer = Int(userAnswer) else { return }
+			let correntNumber = numberForTraining * randomNumber
+			if answer == correntNumber {
+				roundResultAlertTitle = "AWESOME!"
+				roundResultAlertMessage = "Correct!"
+				userScore += 1
+				isShownRoundAlert.toggle()
 			} else {
-				isGamePlaying.toggle()
+				roundResultAlertTitle = "OOUPS!"
+				roundResultAlertMessage = "Incorrenct answer!"
+				isShownRoundAlert.toggle()
 			}
+		}
+		
+		if gameRound == questionCount {
+			isEndOfgame = true
+		}
+	}
+	
+	private func startNewRound() {
+		randomNumber = Int.random(in: 1...10)
+		gameRound += 1
+		userAnswer = ""
+	}
+	
+	private func restartGame() {
+		isEndOfgame = false
+		isGamePlaying = false
+		isShownRoundAlert = false
+		userScore = 0
+		gameRound = 1
+		questionCount = nil
+		userAnswer = ""
+	}
+	
+	
+	// ---------------------------------------------------------
+	
+	private func startGame() {
+		if questionCount == nil {
+			isShowingError = true
 		} else {
 			isGamePlaying.toggle()
 		}
