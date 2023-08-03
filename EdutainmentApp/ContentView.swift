@@ -20,6 +20,8 @@ struct ContentView: View {
 	// Game
 	@State private var isGamePlaying: Bool = false
 	@State private var isEndOfgame = false
+	@State private var errorAlertTitle = ""
+	@State private var errorAlertMessage = ""
 	@State private var gameRound = 1
 	@State private var userScore = 0
 	
@@ -124,9 +126,9 @@ struct ContentView: View {
 				}.navigationTitle("TRAIN YOURSELF")
 			}
 		}
-		.alert("Ooups!", isPresented: $isShowingError) {
+		.alert(errorAlertTitle, isPresented: $isShowingError) {
 		} message: {
-			Text("Choose number of questions and try again!")
+			Text(errorAlertMessage)
 		}
 		.alert(roundResultAlertTitle, isPresented: $isShownRoundAlert) {
 			Button("Next round", action: startNewRound)
@@ -146,6 +148,8 @@ struct ContentView: View {
 extension ContentView {
 	private func startGame() {
 		if questionCount == nil {
+			errorAlertTitle = "Ooups!"
+			errorAlertMessage = "Choose number of questions and try again!"
 			isShowingError = true
 		} else {
 			isGamePlaying.toggle()
@@ -173,8 +177,10 @@ extension ContentView {
 	}
 	
 	private func checkAnswer() {
-		if gameRound == questionCount {
-			isEndOfgame = true
+		if userAnswer.trimmingCharacters(in: .whitespacesAndNewlines) == "" {
+			errorAlertTitle = "Ooups!"
+			errorAlertMessage = "Enter your number try again!"
+			isShowingError = true
 			return
 		}
 		
@@ -189,6 +195,12 @@ extension ContentView {
 			roundResultAlertTitle = "OOUPS!"
 			roundResultAlertMessage = "Incorrenct answer!"
 			isShownRoundAlert.toggle()
+		}
+		
+		guard let questionCount = questionCount else {return}
+		if gameRound == questionCount {
+			isEndOfgame = true
+			return
 		}
 	}
 }
