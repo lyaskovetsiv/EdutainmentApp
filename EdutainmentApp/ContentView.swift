@@ -40,13 +40,16 @@ struct ContentView: View {
 						.ignoresSafeArea()
 					VStack {
 						Text("ROUND \(gameRound)")
-							.font(.largeTitle)
+							.font(.system(size: 45, weight: .bold))
 						Text("What is result of:")
-							.font(.title2)
+							.font(.title)
 						Text("\(randomNumber) x \(numberForTraining)")
+							.font(.title2)
 						
 						TextField("Enter number", text: $userAnswer)
+							.keyboardType(.numberPad)
 							.padding()
+							.background(.white)
 							.border(.blue, width: 2)
 							.padding()
 						
@@ -54,9 +57,16 @@ struct ContentView: View {
 							checkAnswer()
 						} label: {
 							Text("Check")
+								.frame(width: 90, height: 10)
+								.font(.title2)
+								.padding()
+								.background(.blue)
+								.foregroundColor(.white)
+								.clipShape(RoundedRectangle(cornerRadius: 5))
+								
 						}
 						.padding()
-						Text("Your score: \(userScore)")
+						Text("Score: \(userScore)")
 					}
 				}
 			} else {
@@ -113,56 +123,34 @@ struct ContentView: View {
 						Spacer()
 					}
 				}.navigationTitle("TRAIN YOURSELF")
-				
 			}
 		}
-		.alert("WARNING!", isPresented: $isShowingError) {
+		.alert("Ooups!", isPresented: $isShowingError) {
 		} message: {
 			Text("Choose number of questions and try again!")
 		}
 		.alert(roundResultAlertTitle, isPresented: $isShownRoundAlert) {
 			Button("Next round", action: startNewRound)
 		}
-		.alert("THE END", isPresented: $isEndOfgame) {
-			VStack {
-				Text("Your score: \(userScore)")
-				Button("Try again") {
-					restartGame()
-				}
+		.alert("The End", isPresented: $isEndOfgame) {
+			Button("Try again") {
+				restartGame()
 			}
+		} message: {
+			Text("Your score: \(userScore)")
 		}
     }
-	
-	// MARK: - Private methods
-	
-	private func checkAnswer() {
-		if userAnswer.trimmingCharacters(in: .whitespacesAndNewlines) == "" {
-			// alert
-			return
+}
+
+// MARK: - Private methods
+
+extension ContentView {
+	private func startGame() {
+		if questionCount == nil {
+			isShowingError = true
 		} else {
-			guard let answer = Int(userAnswer) else { return }
-			let correntNumber = numberForTraining * randomNumber
-			if answer == correntNumber {
-				roundResultAlertTitle = "AWESOME!"
-				roundResultAlertMessage = "Correct!"
-				userScore += 1
-				isShownRoundAlert.toggle()
-			} else {
-				roundResultAlertTitle = "OOUPS!"
-				roundResultAlertMessage = "Incorrenct answer!"
-				isShownRoundAlert.toggle()
-			}
+			isGamePlaying.toggle()
 		}
-		
-		if gameRound == questionCount {
-			isEndOfgame = true
-		}
-	}
-	
-	private func startNewRound() {
-		randomNumber = Int.random(in: 1...10)
-		gameRound += 1
-		userAnswer = ""
 	}
 	
 	private func restartGame() {
@@ -175,21 +163,38 @@ struct ContentView: View {
 		userAnswer = ""
 	}
 	
-	
-	// ---------------------------------------------------------
-	
-	private func startGame() {
-		if questionCount == nil {
-			isShowingError = true
-		} else {
-			isGamePlaying.toggle()
-		}
+	private func startNewRound() {
+		randomNumber = Int.random(in: 1...10)
+		gameRound += 1
+		userAnswer = ""
 	}
 	
 	private func changeNumberOfQuestions(number: Int) {
 		questionCount = number
 	}
+	
+	private func checkAnswer() {
+		if gameRound == questionCount {
+			isEndOfgame = true
+			return
+		}
+		
+		guard let answer = Int(userAnswer) else { return }
+		let correntNumber = numberForTraining * randomNumber
+		if answer == correntNumber {
+			roundResultAlertTitle = "AWESOME!"
+			roundResultAlertMessage = "Correct!"
+			userScore += 1
+			isShownRoundAlert.toggle()
+		} else {
+			roundResultAlertTitle = "OOUPS!"
+			roundResultAlertMessage = "Incorrenct answer!"
+			isShownRoundAlert.toggle()
+		}
+	}
 }
+
+// MARK: - PreviewProvider
 
 struct ContentView_Previews: PreviewProvider {
     static var previews: some View {
